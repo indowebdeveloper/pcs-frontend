@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { CurrencyAmount, JSBI, Token, Trade, ETHER } from '@pancakeswap/sdk'
-import { Button, Text, ArrowDownIcon, Box, useModal, Card } from '@dxswap/uikit'
+import { Button, Text, ArrowDownIcon, Box, useModal, Card, Heading } from '@dxswap/uikit'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import UnsupportedCurrencyFooter from 'components/UnsupportedCurrencyFooter'
 import { RouteComponentProps } from 'react-router-dom'
@@ -54,6 +54,7 @@ import {
 } from '../../state/info/hooks'
 import ChartCard from '../Info/components/InfoCharts/ChartCard'
 import { PoolUpdater, ProtocolUpdater, TokenUpdater } from '../../state/info/updaters'
+import TransactionTable from '../Info/components/InfoTables/TransactionsTable'
 
 const Label = styled(Text)`
   font-size: 12px;
@@ -375,7 +376,6 @@ export default function Swap({ history }: RouteComponentProps) {
                 tokenPriceData={adjustedPriceData}
                 tokenDecimals={tokenDecimals}
               />
-              
               <div>
                 <AppBody>
                   <AppHeader title={t('Exchange')} subtitle={t('Trade tokens in an instant')} />
@@ -572,6 +572,10 @@ export default function Swap({ history }: RouteComponentProps) {
                   )}
               </div>
       </ContentLayout>
+      <Heading scale="lg" mb="16px" mt="40px">
+              {t('Transactions')}
+      </Heading>
+      <TransactionTable transactions={transactions} />
     </Page>
   )
 }
