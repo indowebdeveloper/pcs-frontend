@@ -8,12 +8,12 @@ import { useBlocksFromTimestamps } from 'views/Info/hooks/useBlocksFromTimestamp
 
 interface PancakeFactory {
   totalTransactions: string
-  totalVolumeUSD: string
-  totalLiquidityUSD: string
+  tradeVolumeUSD: string
+  totalLiquidity: string
 }
 
 interface OverviewResponse {
-  pancakeFactories: PancakeFactory[]
+  token: PancakeFactory
 }
 
 /**
@@ -22,15 +22,18 @@ interface OverviewResponse {
 const getOverviewData = async (block?: number): Promise<{ data?: OverviewResponse; error: boolean }> => {
   try {
     const query = gql`query overview {
-      pancakeFactories(
+      token(
         ${block ? `block: { number: ${block}}` : ``} 
-        first: 1) {
+        id: "0x0b1c18d855c8347650be4be3ffc2f59ba9695c44"
+        ) {
         totalTransactions
-        totalVolumeUSD
-        totalLiquidityUSD
+        tradeVolumeUSD
+        totalLiquidity
       }
     }`
+    console.log(query)
     const data = await request<OverviewResponse>(INFO_CLIENT, query)
+    
     return { data, error: false }
   } catch (error) {
     console.error('Failed to fetch info overview', error)
@@ -42,8 +45,8 @@ const formatPancakeFactoryResponse = (rawPancakeFactory?: PancakeFactory) => {
   if (rawPancakeFactory) {
     return {
       totalTransactions: parseFloat(rawPancakeFactory.totalTransactions),
-      totalVolumeUSD: parseFloat(rawPancakeFactory.totalVolumeUSD),
-      totalLiquidityUSD: parseFloat(rawPancakeFactory.totalLiquidityUSD),
+      tradeVolumeUSD: parseFloat(rawPancakeFactory.tradeVolumeUSD),
+      totalLiquidity: parseFloat(rawPancakeFactory.totalLiquidity),
     }
   }
   return null
@@ -68,9 +71,9 @@ const useFetchProtocolData = (): ProtocolFetchState => {
       const { error: error24, data: data24 } = await getOverviewData(block24?.number ?? undefined)
       const { error: error48, data: data48 } = await getOverviewData(block48?.number ?? undefined)
       const anyError = error || error24 || error48
-      const overviewData = formatPancakeFactoryResponse(data?.pancakeFactories?.[0])
-      const overviewData24 = formatPancakeFactoryResponse(data24?.pancakeFactories?.[0])
-      const overviewData48 = formatPancakeFactoryResponse(data48?.pancakeFactories?.[0])
+      const overviewData = formatPancakeFactoryResponse(data?.token)
+      const overviewData24 = formatPancakeFactoryResponse(data24?.token)
+      const overviewData48 = formatPancakeFactoryResponse(data48?.token)
       const allDataAvailable = overviewData && overviewData24 && overviewData48
       if (anyError || !allDataAvailable) {
         setFetchState({
@@ -78,11 +81,11 @@ const useFetchProtocolData = (): ProtocolFetchState => {
         })
       } else {
         const [volumeUSD, volumeUSDChange] = getChangeForPeriod(
-          overviewData.totalVolumeUSD,
-          overviewData24.totalVolumeUSD,
-          overviewData48.totalVolumeUSD,
+          overviewData.tradeVolumeUSD,
+          overviewData24.tradeVolumeUSD,
+          overviewData48.tradeVolumeUSD,
         )
-        const liquidityUSDChange = getPercentChange(overviewData.totalLiquidityUSD, overviewData24.totalLiquidityUSD)
+        const liquidityUSDChange = getPercentChange(overviewData.totalLiquidity, overviewData24.totalLiquidity)
         // 24H transactions
         const [txCount, txCountChange] = getChangeForPeriod(
           overviewData.totalTransactions,
@@ -92,7 +95,7 @@ const useFetchProtocolData = (): ProtocolFetchState => {
         const protocolData: ProtocolData = {
           volumeUSD,
           volumeUSDChange: typeof volumeUSDChange === 'number' ? volumeUSDChange : 0,
-          liquidityUSD: overviewData.totalLiquidityUSD,
+          liquidityUSD: overviewData.totalLiquidity,
           liquidityUSDChange,
           txCount,
           txCountChange,
