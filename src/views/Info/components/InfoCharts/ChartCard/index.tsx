@@ -20,9 +20,10 @@ interface ChartCardProps {
   chartData: ChartEntry[]
   tokenData?: TokenData
   tokenPriceData?: PriceChartEntry[]
+  tokenDecimals?: number
 }
 
-const ChartCard: React.FC<ChartCardProps> = ({ variant, chartData, tokenData, tokenPriceData }) => {
+const ChartCard: React.FC<ChartCardProps> = ({ variant, chartData, tokenData, tokenPriceData, tokenDecimals }) => {
   const [view, setView] = useState(ChartView.VOLUME)
   const [hoverValue, setHoverValue] = useState<number | undefined>()
   const [hoverDate, setHoverDate] = useState<string | undefined>()
@@ -55,14 +56,17 @@ const ChartCard: React.FC<ChartCardProps> = ({ variant, chartData, tokenData, to
 
   const getLatestValueDisplay = () => {
     let valueToDisplay = null
+    const options = {
+      displayThreshold: 1
+    }
     if (hoverValue) {
-      valueToDisplay = formatAmount(hoverValue)
+      valueToDisplay = formatAmount(hoverValue, options)
     } else if (view === ChartView.VOLUME && formattedVolumeData.length > 0) {
-      valueToDisplay = formatAmount(formattedVolumeData[formattedVolumeData.length - 1]?.value)
+      valueToDisplay = formatAmount(formattedVolumeData[formattedVolumeData.length - 1]?.value, options)
     } else if (view === ChartView.LIQUIDITY && formattedTvlData.length > 0) {
-      valueToDisplay = formatAmount(formattedTvlData[formattedTvlData.length - 1]?.value)
+      valueToDisplay = formatAmount(formattedTvlData[formattedTvlData.length - 1]?.value, options)
     } else if (view === ChartView.PRICE && tokenData?.priceUSD) {
-      valueToDisplay = formatAmount(tokenData.priceUSD)
+      valueToDisplay = formatAmount(tokenData.priceUSD,options)
     }
 
     return valueToDisplay ? (

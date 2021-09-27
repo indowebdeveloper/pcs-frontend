@@ -24,9 +24,10 @@ export const formatAmount = (
     displayThreshold?: number
     tokenPrecision?: boolean
     isInteger?: boolean
+    exactPrecision?: number
   },
 ) => {
-  const { notation = 'compact', displayThreshold, tokenPrecision, isInteger } = options || { notation: 'compact' }
+  const { notation = 'compact', displayThreshold, tokenPrecision, isInteger, exactPrecision = 2 } = options || { notation: 'compact' }
   if (amount === 0) {
     if (isInteger) {
       return '0'
@@ -41,7 +42,7 @@ export const formatAmount = (
     return getFirstThreeNonZeroDecimals(amount)
   }
 
-  let precision = 2
+  let precision = exactPrecision
   if (tokenPrecision) {
     precision = amount < 1 ? 3 : 2
   }
